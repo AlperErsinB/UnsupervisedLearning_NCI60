@@ -1,0 +1,60 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+df = pd.read_csv('NCI60.csv')
+
+df.head(10)
+
+# input -> feature -> X
+X = df.iloc[:, 1:6831]
+X
+
+# scale -> yeniden boyutlandır -> aynı ölçüleri getir
+
+sc = StandardScaler()
+
+X_scaled = sc.fit_transform(X)
+X_scaled
+
+# Principal Component Analysis
+# Önemli olan genler (2 adet) -> PCA
+
+pca = PCA(n_components=2)
+
+pca_result = pca.fit_transform(X_scaled)
+
+print('Eigenvalues')
+pca.explained_variance_
+
+print('Variances (Percentage)')
+pca.explained_variance_ratio_ * 100
+
+principalDf = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
+
+principalDf.head(10)
+
+finalDf = pd.concat([principalDf, df[['labs']]], axis=1)
+
+finalDf.head(10)
+
+# Plot PCA
+
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(1,1,1)
+
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.set_title('En Etkili Genler - Hastalık')
+
+targets = ['COLON', 'MELANOMA', 'LEUKEMIA']
+
+for target in targets:
+    indexler = finalDf['labs'] == target
+    ax.scatter(finalDf.loc[indexler, 'PC1'],
+               finalDf.loc[indexler, 'PC2'], s = 50)
+    
+ax.legend(targets, loc='upper right')
+ax.grid()
+
